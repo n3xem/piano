@@ -3,6 +3,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 class ThreeJSContainer {
     private scene: THREE.Scene;
+    private camera: THREE.PerspectiveCamera;
+    private canvas;
 
     constructor() {
         this.createScene();
@@ -10,19 +12,22 @@ class ThreeJSContainer {
 
     // 画面部分の作成(表示する枠ごとに)
     public createRendererDOM = (width: number, height: number, cameraPos: THREE.Vector3) => {
-        let renderer = new THREE.WebGLRenderer();
+        this.canvas = document.querySelector('#myCanvas');
+        let renderer = new THREE.WebGLRenderer({
+            canvas: this.canvas
+        });
         renderer.setSize(width, height);
         renderer.setClearColor(new THREE.Color(0x495ed));
 
         //カメラの設定
-        let camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.copy(cameraPos);
-        camera.lookAt(new THREE.Vector3(0, 0, 0));
-        let orbitControls = new OrbitControls(camera, renderer.domElement);
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        this.camera.position.copy(cameraPos);
+        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+        let orbitControls = new OrbitControls(this.camera, renderer.domElement);
 
         let render = () => {
 
-            renderer.render(this.scene, camera);
+            renderer.render(this.scene, this.camera);
             requestAnimationFrame(render);
         }
         render();
@@ -41,27 +46,33 @@ class ThreeJSContainer {
         this.scene = new THREE.Scene();
 
         let white_key_geometry = new THREE.BoxGeometry(WHITE_KEY_WIDTH, 2, 10);
+        white_key_geometry.name = "white";
         let black_key_geometry = new THREE.BoxGeometry(WHITE_KEY_WIDTH / 2, 2, 6);
-        let white_key_material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
-        let black_key_material = new THREE.MeshPhongMaterial({ color: 0x000000 });
+        black_key_geometry.name = "black";
 
         let white_keys: THREE.Mesh[] = new Array(7);
         let black_keys: THREE.Mesh[] = new Array(5);
 
+        let meshList: THREE.Mesh[] = [];
+
         //白い鍵盤を追加
         for (let i = 0; i < WHITE_KEY_NUM; i++) {
+            let white_key_material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
             let tmp: THREE.Mesh = new THREE.Mesh(white_key_geometry, white_key_material);
             tmp.position.set(i * (WHITE_KEY_WIDTH + WHITE_KEY_DISTANCE) - KEYBOARD_WIDTH / 2, 0, 0);
             white_keys[i] = tmp;
+            meshList.push(tmp);
             this.scene.add(white_keys[i]);
         }
 
         //黒い鍵盤を追加
         for (let i = 0; i < 6; i++) {
             if (i === 2) continue;
+            let black_key_material = new THREE.MeshPhongMaterial({ color: 0x000000 });
             let tmp: THREE.Mesh = new THREE.Mesh(black_key_geometry, black_key_material);
             tmp.position.set(1.05 + i * (WHITE_KEY_WIDTH + WHITE_KEY_DISTANCE) - KEYBOARD_WIDTH / 2, 1, -1.7);
             black_keys[i] = tmp;
+            meshList.push(tmp);
             this.scene.add(black_keys[i]);
         }
 
@@ -74,6 +85,41 @@ class ThreeJSContainer {
         const lightHelper = new THREE.SpotLightHelper(spotLight);
         this.scene.add(lightHelper);
         */
+
+        const canvas = document.querySelector('canvas');
+        const mouse = new THREE.Vector2();
+
+        const raycaster = new THREE.Raycaster();
+
+        let onMouseDown = (event) => {
+
+            const element = event.currentTarget;
+            // canvas要素上のXY座標
+            const x = event.clientX - element.offsetLeft;
+            const y = event.clientY - element.offsetTop;
+            // canvas要素の幅・高さ
+            const w = element.offsetWidth;
+            const h = element.offsetHeight;
+
+            // -1〜+1の範囲で現在のマウス座標を登録する
+            mouse.x = (x / w) * 2 - 1;
+            mouse.y = -(y / h) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, this.camera);
+            const intersects = raycaster.intersectObjects(meshList);
+
+            meshList.map(mesh => {
+                if (intersects.length > 0 && mesh === intersects[0].object) {
+                    mesh.material.color.setHex(0xFF0000);
+                } else if (mesh.geometry.name === "black") {
+                    mesh.material.color.setHex(0x000000)
+                } else {
+                    mesh.material.color.setHex(0xFFFFFF);
+                }
+            })
+        }
+
+        canvas.addEventListener('mousedown', onMouseDown);
 
         let update = () => {
 
