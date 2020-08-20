@@ -19,7 +19,7 @@ class ThreeJSContainer {
             canvas: this.canvas
         });
         renderer.setSize(width, height);
-        renderer.setClearColor(new THREE.Color(0x495ed));
+        renderer.setClearColor(new THREE.Color(0x333333));
 
         //カメラの設定
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
@@ -48,6 +48,10 @@ class ThreeJSContainer {
         const KEYBOARD_WIDTH = 2.1 * 6;
         const WHITE_KEY_SCALE: string[] = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
         const BLACK_KEY_SCALE: string[] = ["C#4", "D#4", "", "F#4", "G#4", "A#4"];
+
+        let playedScale = {};
+        let isMousePush = false;
+
         this.scene = new THREE.Scene();
 
         let white_key_geometry = new THREE.BoxGeometry(WHITE_KEY_WIDTH, 2, 10);
@@ -83,6 +87,7 @@ class ThreeJSContainer {
             this.scene.add(black_keys[i]);
         }
 
+        //ライトの設定
         const spotLight = new THREE.SpotLight(0xFFFFFF, 2, 50, Math.PI / 4, 10, 0.5);
         spotLight.position.set(0, 30, 20);
         this.scene.add(spotLight);
@@ -93,45 +98,70 @@ class ThreeJSContainer {
         this.scene.add(lightHelper);
         */
 
-        const canvas = document.querySelector('canvas');
-        const mouse = new THREE.Vector2();
+        const CANVAS = document.querySelector('canvas');
+        const MOUSE = new THREE.Vector2();
 
         const raycaster = new THREE.Raycaster();
+        let intersects: THREE.Intersection[] = [];
 
-        let onMouseDown = (event) => {
+        //カーソル座標取得と、マウスに当たったオブジェクトを取得
+        let onMouseMove = (event) => {
 
+            console.log("move");
             const element = event.currentTarget;
             // canvas要素上のXY座標
-            const x = event.clientX - element.offsetLeft;
-            const y = event.clientY - element.offsetTop;
+            const mouseX = event.clientX - element.offsetLeft;
+            const mouseY = event.clientY - element.offsetTop;
             // canvas要素の幅・高さ
             const w = element.offsetWidth;
             const h = element.offsetHeight;
 
             // -1〜+1の範囲で現在のマウス座標を登録する
-            mouse.x = (x / w) * 2 - 1;
-            mouse.y = -(y / h) * 2 + 1;
+            MOUSE.x = (mouseX / w) * 2 - 1;
+            MOUSE.y = -(mouseY / h) * 2 + 1;
 
-            raycaster.setFromCamera(mouse, this.camera);
-            const intersects = raycaster.intersectObjects(meshList);
+            raycaster.setFromCamera(MOUSE, this.camera);
+            intersects = raycaster.intersectObjects(meshList);
 
-            meshList.map(mesh => {
-                if (intersects.length > 0 && mesh === intersects[0].object) {
-                    synth.triggerAttackRelease(mesh.name, "8n");
-                    mesh.material.color.setHex(0xFF0000);
-                } else if (mesh.geometry.name === "black") {
-                    mesh.material.color.setHex(0x000000)
-                } else {
-                    mesh.material.color.setHex(0xFFFFFF);
-                }
-            })
         }
 
-        canvas.addEventListener('mousedown', onMouseDown);
+        let onMouseDown = (event) => {
+            isMousePush = true;
+
+            console.log("mousedown");
+        }
+        let onMouseUp = (event) => {
+            isMousePush = false;
+            synth.triggerRelease(TONE.now());
+            console.log("mouseup")
+        }
+
+        CANVAS.addEventListener('mousedown', onMouseDown);
+        CANVAS.addEventListener('mouseup', onMouseUp);
+        CANVAS.addEventListener('mousemove', onMouseMove);
 
         let update = () => {
 
-            //lightHelper.update();
+            meshList.map(mesh => {
+                let now = TONE.now();
+                if (intersects.length > 0 && mesh === intersects[0].object && isMousePush) {
+                    console.log("attack");
+                    if (playedScale[mesh.name] !== true) {
+                        synth.triggerAttack(mesh.name, now);
+                        playedScale[mesh.name] = true;
+                    }
+                    mesh.material.color.setHex(0xFF0000);
+                }
+                else if (mesh.geometry.name === "black") {
+                    playedScale[mesh.name] = false;
+                    mesh.material.color.setHex(0x000000)
+                }
+                else if (mesh.geometry.name === "white") {
+                    playedScale[mesh.name] = false;
+                    mesh.material.color.setHex(0xFFFFFF);
+                }
+            });
+
             requestAnimationFrame(update);
         }
         update();
