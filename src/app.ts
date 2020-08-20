@@ -25,7 +25,7 @@ class ThreeJSContainer {
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         this.camera.position.copy(cameraPos);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-        let orbitControls = new OrbitControls(this.camera, renderer.domElement);
+        //let orbitControls = new OrbitControls(this.camera, renderer.domElement);
 
         let render = () => {
 
@@ -140,5 +140,5 @@ class ThreeJSContainer {
 
 let container = new ThreeJSContainer();
 
-let viewport = container.createRendererDOM(640, 480, new THREE.Vector3(0, 10, 10));
+let viewport = container.createRendererDOM(1200, 500, new THREE.Vector3(0, 10, 10));
 document.body.appendChild(viewport);
