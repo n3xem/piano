@@ -1,5 +1,7 @@
 import * as THREE from "three";
+import * as TONE from "tone";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { Tone } from "tone/build/esm/core/Tone";
 
 class ThreeJSContainer {
     private scene: THREE.Scene;
@@ -39,10 +41,13 @@ class ThreeJSContainer {
 
     // シーンの作成(全体で1回)
     private createScene = () => {
+        const synth = new TONE.Synth().toDestination();
         const WHITE_KEY_WIDTH = 2;
         const WHITE_KEY_NUM = 7;
         const WHITE_KEY_DISTANCE = 0.1;
         const KEYBOARD_WIDTH = 2.1 * 6;
+        const WHITE_KEY_SCALE: string[] = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
+        const BLACK_KEY_SCALE: string[] = ["C#4", "D#4", "", "F#4", "G#4", "A#4"];
         this.scene = new THREE.Scene();
 
         let white_key_geometry = new THREE.BoxGeometry(WHITE_KEY_WIDTH, 2, 10);
@@ -60,6 +65,7 @@ class ThreeJSContainer {
             let white_key_material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
             let tmp: THREE.Mesh = new THREE.Mesh(white_key_geometry, white_key_material);
             tmp.position.set(i * (WHITE_KEY_WIDTH + WHITE_KEY_DISTANCE) - KEYBOARD_WIDTH / 2, 0, 0);
+            tmp.name = WHITE_KEY_SCALE[i];
             white_keys[i] = tmp;
             meshList.push(tmp);
             this.scene.add(white_keys[i]);
@@ -71,6 +77,7 @@ class ThreeJSContainer {
             let black_key_material = new THREE.MeshPhongMaterial({ color: 0x000000 });
             let tmp: THREE.Mesh = new THREE.Mesh(black_key_geometry, black_key_material);
             tmp.position.set(1.05 + i * (WHITE_KEY_WIDTH + WHITE_KEY_DISTANCE) - KEYBOARD_WIDTH / 2, 1, -1.7);
+            tmp.name = BLACK_KEY_SCALE[i];
             black_keys[i] = tmp;
             meshList.push(tmp);
             this.scene.add(black_keys[i]);
@@ -110,6 +117,7 @@ class ThreeJSContainer {
 
             meshList.map(mesh => {
                 if (intersects.length > 0 && mesh === intersects[0].object) {
+                    synth.triggerAttackRelease(mesh.name, "8n");
                     mesh.material.color.setHex(0xFF0000);
                 } else if (mesh.geometry.name === "black") {
                     mesh.material.color.setHex(0x000000)
