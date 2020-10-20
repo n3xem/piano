@@ -13,7 +13,8 @@ module.exports = {
 
     module: {
         rules: [
-            { test: /\.ts$/, loader: 'ts-loader', options: { transpileOnly: true } }
+            { test: /\.ts$/, loader: 'ts-loader', options: { transpileOnly: true } },
+            { test: /\.css$/, loaders: ['style-loader', 'css-loader?modules'] }
         ]
     }
 };

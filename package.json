@@ -10,12 +10,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "abcjs": "^5.12.0",
     "dat.gui": "^0.7.7",
     "three": "^0.119.1",
     "tone": "^14.7.39"
   },
   "devDependencies": {
+    "css-loader": "^4.2.1",
     "http-server": "^0.12.3",
+    "style-loader": "^1.2.1",
     "ts-loader": "^8.0.2",
     "typescript": "^3.9.7",
     "webpack": "^4.44.1",

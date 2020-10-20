@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import * as TONE from "tone";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { Tone } from "tone/build/esm/core/Tone";
+import * as ABCJS from "abcjs";
+import 'abcjs/abcjs-audio.css';
 
 class ThreeJSContainer {
     private scene: THREE.Scene;
@@ -50,6 +50,8 @@ class ThreeJSContainer {
         const KEYBOARD_WIDTH = WHITE_KEY_WIDTH * WHITE_KEY_NUM + 0.1 * (WHITE_KEY_NUM - 1);
         const WHITE_KEY_SCALE: string[] = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
         const BLACK_KEY_SCALE: string[] = ["C#4", "D#4", "", "F#4", "G#4", "A#4"];
+
+        let abcjsScore: string = "M:4\/4\nL:1\/4\nK:C\n";
 
         let playedScale = {};
         let isMousePush = false;
@@ -120,7 +122,7 @@ class ThreeJSContainer {
         //カーソル座標取得と、マウスに当たったオブジェクトを取得
         let onMouseMove = (event) => {
 
-            console.log("move");
+            //console.log("move");
             const element = event.currentTarget;
             // canvas要素上のXY座標
             const mouseX = event.clientX - element.offsetLeft;
@@ -141,12 +143,12 @@ class ThreeJSContainer {
         let onMouseDown = (event) => {
             isMousePush = true;
 
-            console.log("mousedown");
+            //console.log("mousedown");
         }
         let onMouseUp = (event) => {
             isMousePush = false;
             synth.triggerRelease(TONE.now());
-            console.log("mouseup")
+            //console.log("mouseup")
         }
 
         CANVAS.addEventListener('mousedown', onMouseDown);
@@ -158,7 +160,7 @@ class ThreeJSContainer {
             meshList.map(mesh => {
                 let now = TONE.now();
                 if (intersects.length > 0 && mesh === intersects[0].object && isMousePush) {
-                    console.log("attack");
+                    //console.log("attack");
                     if (playedScale[mesh.name] !== true) {
                         synth.triggerAttack(mesh.name, now);
                         mesh.rotation.x = 0.1;
@@ -188,3 +190,5 @@ let container = new ThreeJSContainer();
 
 let viewport = container.createRendererDOM(1200, 500, new THREE.Vector3(0, 13, 10));
 document.body.appendChild(viewport);
+
+//ABCJS.renderAbc("paper", "M:4\/4\nL:1\/4\nK:C\nDDABBB");
