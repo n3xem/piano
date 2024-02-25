@@ -3,17 +3,17 @@
 
 # Description
 3Dモデルのピアノです。  
+鍵盤をクリックすると音が出ます。
 Three.jsでピアノをモデリングし、Tone.jsで音を出しています。  
-鍵盤をクリックするとその鍵盤に応じた音程の音を出すことが出来ます。 
 
-# Requirement
-node v10.14.2
 # Install
-```
-$ npm install
+```zsh
+yarn
 ```
 # Usage
+```zsh
+yarn run test
 ```
-$ npm run test
-```
-そして、http://localhost:8080 にアクセスしてください。
+
+表示されたURLにアクセスしてください。
+
